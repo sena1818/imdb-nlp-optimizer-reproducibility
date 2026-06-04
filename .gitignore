@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local environments
+.venv/
+venv/
+env/
+.conda/
+
+# Runtime caches
+.cache/
+.matplotlib_cache/
+
+# Experiment outputs
+results/
+*.pt
+*.pth
+*.ckpt
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+

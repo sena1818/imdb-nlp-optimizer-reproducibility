@@ -1,0 +1,50 @@
+{
+  "dataset": "imdb",
+  "model": "textcnn",
+  "optimizers": ["sgd", "adam", "rmsprop", "adamw"],
+  "seeds": [101, 102, 103, 104, 105],
+  "tuning_seed": 101,
+  "data_seed": 13,
+  "epochs": 5,
+  "batch_size": 64,
+  "max_len": 256,
+  "max_train": -1,
+  "max_test": -1,
+  "val_fraction": 0.1,
+  "device": "auto",
+  "num_workers": 0,
+  "output_root": "results/imdb",
+  "tuning_trials_per_optimizer": 10,
+  "defaults": {
+    "sgd": {"lr": 0.1, "weight_decay": 0.0, "momentum": 0.9, "dropout": 0.5},
+    "adam": {"lr": 0.001, "weight_decay": 0.0, "momentum": 0.0, "dropout": 0.5},
+    "rmsprop": {"lr": 0.001, "weight_decay": 0.0, "momentum": 0.0, "dropout": 0.5},
+    "adamw": {"lr": 0.001, "weight_decay": 0.01, "momentum": 0.0, "dropout": 0.5}
+  },
+  "search_spaces": {
+    "sgd": {
+      "lr": ["loguniform", 0.001, 0.5],
+      "weight_decay": ["zero_or_loguniform", 1e-7, 0.01, 0.3],
+      "momentum": ["choice", [0.0, 0.5, 0.9]],
+      "dropout": ["uniform", 0.2, 0.6]
+    },
+    "adam": {
+      "lr": ["loguniform", 1e-5, 0.01],
+      "weight_decay": ["zero_or_loguniform", 1e-7, 0.01, 0.3],
+      "momentum": ["fixed", 0.0],
+      "dropout": ["uniform", 0.2, 0.6]
+    },
+    "rmsprop": {
+      "lr": ["loguniform", 1e-5, 0.03],
+      "weight_decay": ["zero_or_loguniform", 1e-7, 0.01, 0.3],
+      "momentum": ["choice", [0.0, 0.5, 0.9]],
+      "dropout": ["uniform", 0.2, 0.6]
+    },
+    "adamw": {
+      "lr": ["loguniform", 1e-5, 0.01],
+      "weight_decay": ["zero_or_loguniform", 1e-7, 0.1, 0.15],
+      "momentum": ["fixed", 0.0],
+      "dropout": ["uniform", 0.2, 0.6]
+    }
+  }
+}
