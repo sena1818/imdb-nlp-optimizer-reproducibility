@@ -1,62 +1,62 @@
 {
   "adam": {
-    "best_val_accuracy": 0.9125833333333333,
+    "best_val_accuracy": 0.9085,
     "budget": "small_tuned",
-    "final_test_accuracy_on_tuning_seed": 0.9110526315789473,
+    "final_test_accuracy_on_tuning_seed": 0.9067105263157895,
     "optimizer": "adam",
     "params": {
-      "dropout": 0.5838488190985489,
-      "lr": 0.001265091563022138,
+      "dropout": 0.5,
+      "lr": 0.004229610429138145,
       "momentum": 0.0,
-      "weight_decay": 0.0003737804430935867
+      "weight_decay": 4.200138097015516e-05
     },
     "selected_by": "best_val_accuracy_on_single_tuning_seed",
-    "trial": 7,
+    "trial": 5,
     "tuning_seed": 101
   },
   "adamw": {
-    "best_val_accuracy": 0.9158333333333334,
+    "best_val_accuracy": 0.9146666666666666,
     "budget": "small_tuned",
-    "final_test_accuracy_on_tuning_seed": 0.9106578947368421,
+    "final_test_accuracy_on_tuning_seed": 0.9075,
     "optimizer": "adamw",
     "params": {
-      "dropout": 0.3557391908400379,
-      "lr": 0.0026346523896411816,
+      "dropout": 0.5,
+      "lr": 0.0015272956720218968,
       "momentum": 0.0,
-      "weight_decay": 0.056617020074390186
+      "weight_decay": 0.0007785552539071024
     },
     "selected_by": "best_val_accuracy_on_single_tuning_seed",
-    "trial": 7,
+    "trial": 4,
     "tuning_seed": 101
   },
   "rmsprop": {
-    "best_val_accuracy": 0.9076666666666666,
+    "best_val_accuracy": 0.9125,
     "budget": "small_tuned",
-    "final_test_accuracy_on_tuning_seed": 0.9057894736842105,
+    "final_test_accuracy_on_tuning_seed": 0.9113157894736842,
     "optimizer": "rmsprop",
     "params": {
-      "dropout": 0.5869071138673321,
-      "lr": 0.003100427220161908,
-      "momentum": 0.0,
-      "weight_decay": 1.9685922499509777e-06
+      "dropout": 0.5,
+      "lr": 0.00032049841396617764,
+      "momentum": 0.5,
+      "weight_decay": 0.0
     },
     "selected_by": "best_val_accuracy_on_single_tuning_seed",
     "trial": 5,
     "tuning_seed": 101
   },
   "sgd": {
-    "best_val_accuracy": 0.881,
+    "best_val_accuracy": 0.891,
     "budget": "small_tuned",
-    "final_test_accuracy_on_tuning_seed": 0.8822368421052632,
+    "final_test_accuracy_on_tuning_seed": 0.8844736842105263,
     "optimizer": "sgd",
     "params": {
-      "dropout": 0.3256932503289719,
-      "lr": 0.016353281228575118,
-      "momentum": 0.9,
-      "weight_decay": 0.0002666185347276668
+      "dropout": 0.5,
+      "lr": 0.1301071792917095,
+      "momentum": 0.5,
+      "weight_decay": 0.0004494640513067468
     },
     "selected_by": "best_val_accuracy_on_single_tuning_seed",
-    "trial": 5,
+    "trial": 3,
     "tuning_seed": 101
   }
 }
