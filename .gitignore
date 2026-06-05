@@ -13,11 +13,20 @@ env/
 .cache/
 .matplotlib_cache/
 
-# Experiment outputs
-results/
+# Experiment outputs — exclude per-run directories (large, reproducible)
+# but keep summary CSVs, plots, and variance analysis
+results/*/runs/
+results/runs/
 *.pt
 *.pth
 *.ckpt
+
+# Local runtime logs
+*.log
+
+# Local SSL and Claude working files
+ssl_patch.py
+.claude/
 
 # OS/editor files
 .DS_Store
