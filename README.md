@@ -26,25 +26,28 @@ Dropout is deliberately held fixed across all search spaces so that only optimiz
 
 ## Key Results
 
+All accuracy values are `best_epoch_test_accuracy` — test accuracy at the epoch with the best validation accuracy. Mean over 5 seeds.
+
 ### IMDB (max\_len=512, ~40 s/run on RTX 4060)
 
 | Budget | Adam | AdamW | RMSProp | SGD |
 |--------|------|-------|---------|-----|
-| Default | 87.7% ② | **87.7% ①** | 86.1% ③ | 50.0% ④ |
-| Tuned | **87.8% ①** | 87.3% ② | 86.6% ③ | 82.5% ④ |
+| Default | 87.65% ② | **87.66% ①** | 86.37% ③ | 50.00% ④ |
+| Tuned   | **87.84% ①** | 87.35% ② | 86.61% ③ | 82.54% ④ |
 
 ### AG News (max\_len=128, ~65 s/run on RTX 4060)
 
 | Budget | Adam | AdamW | RMSProp | SGD |
 |--------|------|-------|---------|-----|
-| Default | 90.8% ② | **90.9% ①** | 90.5% ③ | 25.0% ④ |
-| Tuned | 90.5% ③ | **91.0% ①** | 90.9% ② | 88.9% ④ |
+| Default | 90.92% ③ | 90.95% ② | **91.05% ①** | 25.00% ④ |
+| Tuned   | 90.51% ③ | **91.03% ①** | 90.96% ② | 88.93% ④ |
 
 **Findings:**
-- SGD with its NLP-standard default (lr=0.1) collapses to chance on both tasks. Small-budget tuning rescues it to competitive accuracy, but with noticeably higher seed variance than Adam/AdamW.
-- Adam and AdamW are nearly indistinguishable at default settings. After tuning, Adam edges ahead on IMDB while AdamW retains the top rank on AG News — the ranking is dataset-dependent.
-- On IMDB, one SGD tuned run shows a sharp drop from epoch 4 (81.2%) to epoch 5 (62.5%), illustrating why reporting at the best-val-epoch checkpoint matters.
-- Variance analysis: optimizer choice (η²≈0.73) dominates over tuning budget (η²≈0.05) and seed (η²≈0.004), largely driven by SGD.
+- SGD with its NLP-standard default (lr=0.1) collapses to chance on both tasks. Small-budget tuning rescues it substantially, but with noticeably higher seed variance than Adam/AdamW.
+- On IMDB, Adam and AdamW are nearly tied at default. After tuning, Adam edges ahead while AdamW drops — the ranking reverses.
+- On AG News, RMSProp ranks first at default settings but drops to second after tuning; AdamW takes first. Rankings are dataset-dependent.
+- One SGD tuned run (IMDB seed 103) drops from 81.2% at epoch 4 to 62.5% at epoch 5, illustrating why best-val-epoch accuracy matters over final-epoch.
+- Variance analysis (eta-squared): IMDB — optimizer 0.554, budget 0.112, seed 0.001. AG News — optimizer 0.458, budget 0.134, seed ≈0.000. Optimizer choice dominates; seed variation is negligible for non-SGD optimizers.
 
 ## Repository Layout
 
