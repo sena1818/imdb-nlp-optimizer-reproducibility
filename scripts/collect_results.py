@@ -34,14 +34,23 @@ def main():
         raise SystemExit("No result summaries found. Run default baselines and tuned reruns first.")
 
     df = pd.DataFrame(rows)
+    # Prefer best_epoch_test_accuracy (test acc at best val epoch) over
+    # final_test_accuracy (test acc at last epoch). Fall back for old runs.
+    if "best_epoch_test_accuracy" in df.columns:
+        df["test_accuracy"] = df["best_epoch_test_accuracy"].fillna(df["final_test_accuracy"])
+    else:
+        df["test_accuracy"] = df["final_test_accuracy"]
     keep = [
         "dataset",
         "optimizer",
         "budget",
         "phase",
         "seed",
+        "test_accuracy",
+        "best_epoch_test_accuracy",
         "final_test_accuracy",
         "best_val_accuracy",
+        "best_epoch_by_val_accuracy",
         "final_test_loss",
         "total_seconds",
         "seconds_per_epoch_mean",
@@ -55,11 +64,11 @@ def main():
     grouped = (
         df.groupby(["dataset", "budget", "optimizer"], as_index=False)
         .agg(
-            mean_test_accuracy=("final_test_accuracy", "mean"),
-            std_test_accuracy=("final_test_accuracy", "std"),
-            min_test_accuracy=("final_test_accuracy", "min"),
-            max_test_accuracy=("final_test_accuracy", "max"),
-            n=("final_test_accuracy", "count"),
+            mean_test_accuracy=("test_accuracy", "mean"),
+            std_test_accuracy=("test_accuracy", "std"),
+            min_test_accuracy=("test_accuracy", "min"),
+            max_test_accuracy=("test_accuracy", "max"),
+            n=("test_accuracy", "count"),
             mean_seconds=("total_seconds", "mean"),
         )
         .sort_values(["dataset", "budget", "mean_test_accuracy"], ascending=[True, True, False])

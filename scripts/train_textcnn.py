@@ -292,6 +292,7 @@ def train(args):
     metrics_rows = []
     best_val_accuracy = -math.inf
     best_epoch = None
+    best_epoch_test_accuracy = None
 
     for epoch in range(1, args.epochs + 1):
         model.train()
@@ -338,6 +339,7 @@ def train(args):
         if val_metrics["accuracy"] > best_val_accuracy:
             best_val_accuracy = val_metrics["accuracy"]
             best_epoch = epoch
+            best_epoch_test_accuracy = test_metrics["accuracy"]
             if args.save_model:
                 torch.save(model.state_dict(), run_dir / "best_model.pt")
 
@@ -372,6 +374,7 @@ def train(args):
         "seconds_per_epoch_mean": sum(r["epoch_seconds"] for r in metrics_rows) / len(metrics_rows),
         "best_epoch_by_val_accuracy": best_epoch,
         "best_val_accuracy": best_val_accuracy,
+        "best_epoch_test_accuracy": best_epoch_test_accuracy,
         "final_test_accuracy": final["test_accuracy"],
         "final_test_loss": final["test_loss"],
     }

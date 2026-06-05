@@ -27,25 +27,25 @@
       "lr": ["loguniform", 0.001, 0.5],
       "weight_decay": ["zero_or_loguniform", 1e-7, 0.01, 0.3],
       "momentum": ["choice", [0.0, 0.5, 0.9]],
-      "dropout": ["uniform", 0.2, 0.6]
+      "dropout": ["fixed", 0.5]
     },
     "adam": {
       "lr": ["loguniform", 1e-5, 0.01],
       "weight_decay": ["zero_or_loguniform", 1e-7, 0.01, 0.3],
       "momentum": ["fixed", 0.0],
-      "dropout": ["uniform", 0.2, 0.6]
+      "dropout": ["fixed", 0.5]
     },
     "rmsprop": {
       "lr": ["loguniform", 1e-5, 0.03],
       "weight_decay": ["zero_or_loguniform", 1e-7, 0.01, 0.3],
       "momentum": ["choice", [0.0, 0.5, 0.9]],
-      "dropout": ["uniform", 0.2, 0.6]
+      "dropout": ["fixed", 0.5]
     },
     "adamw": {
       "lr": ["loguniform", 1e-5, 0.01],
       "weight_decay": ["zero_or_loguniform", 1e-7, 0.1, 0.15],
       "momentum": ["fixed", 0.0],
-      "dropout": ["uniform", 0.2, 0.6]
+      "dropout": ["fixed", 0.5]
     }
   }
 }
