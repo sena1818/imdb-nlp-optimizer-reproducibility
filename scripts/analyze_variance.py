@@ -22,7 +22,11 @@ def main():
         description="Compute simple variance analysis and optional mixed-effects model."
     )
     parser.add_argument("--all-runs", default="results/all_runs.csv")
-    parser.add_argument("--response", default="final_test_accuracy")
+    parser.add_argument("--response", default="test_accuracy",
+                        help="Column to analyse. Default: test_accuracy "
+                             "(= best_epoch_test_accuracy, the test acc at the "
+                             "best-val-epoch checkpoint). Use final_test_accuracy "
+                             "only for comparison.")
     parser.add_argument("--output", default="results/variance_analysis.md")
     parser.add_argument("--try-lmem", action="store_true")
     args = parser.parse_args()

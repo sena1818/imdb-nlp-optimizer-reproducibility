@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+Collect default and tuned rerun results into summary tables.
+
+Primary source: individual runs/*/summary.json files (always up-to-date,
+contain best_epoch_test_accuracy). Fallback: pre-aggregated JSON files
+(used when runs/ directory is absent, e.g. fresh clone from GitHub).
+"""
 import argparse
 import json
 from pathlib import Path
@@ -8,12 +15,27 @@ import pandas as pd
 from experiment_utils import project_path
 
 
-def load_rows(path, budget, phase):
-    path = Path(path)
+def load_rows_from_runs(runs_dir: Path, name_prefix: str, budget: str, phase: str):
+    """Read individual summary.json files for runs matching name_prefix."""
+    rows = []
+    if not runs_dir.exists():
+        return rows
+    for run_dir in sorted(runs_dir.iterdir()):
+        if run_dir.is_dir() and run_dir.name.startswith(name_prefix):
+            summary_path = run_dir / "summary.json"
+            if summary_path.exists():
+                row = json.loads(summary_path.read_text(encoding="utf-8"))
+                row.setdefault("budget", budget)
+                row.setdefault("phase", phase)
+                rows.append(row)
+    return rows
+
+
+def load_rows_from_json(path: Path, budget: str, phase: str):
+    """Fallback: read pre-aggregated JSON file."""
     if not path.exists():
         return []
-    with path.open("r", encoding="utf-8") as handle:
-        rows = json.load(handle)
+    rows = json.loads(path.read_text(encoding="utf-8"))
     for row in rows:
         row.setdefault("budget", budget)
         row.setdefault("phase", phase)
@@ -26,9 +48,18 @@ def main():
     args = parser.parse_args()
 
     results_dir = project_path(args.results_dir)
+    runs_dir = results_dir / "runs"
     rows = []
-    rows.extend(load_rows(results_dir / "default_summaries.json", "default", "default"))
-    rows.extend(load_rows(results_dir / "small_tuned_rerun_summaries.json", "small_tuned", "rerun"))
+
+    if runs_dir.exists():
+        # Primary: read directly from individual run summaries (always complete)
+        dataset = results_dir.name  # e.g. "imdb" or "ag_news"
+        rows.extend(load_rows_from_runs(runs_dir, f"default_{dataset}_", "default", "default"))
+        rows.extend(load_rows_from_runs(runs_dir, f"rerun_small_tuned_{dataset}_", "small_tuned", "rerun"))
+    else:
+        # Fallback: use pre-aggregated JSON (fresh clone, runs/ excluded from git)
+        rows.extend(load_rows_from_json(results_dir / "default_summaries.json", "default", "default"))
+        rows.extend(load_rows_from_json(results_dir / "small_tuned_rerun_summaries.json", "small_tuned", "rerun"))
 
     if not rows:
         raise SystemExit("No result summaries found. Run default baselines and tuned reruns first.")
