@@ -28,7 +28,9 @@ def main():
     tuning_seed = int(config.get("tuning_seed", config["seeds"][0]))
     output_root = project_path(config.get("output_root", "results"))
     output_dir = output_root / "runs"
-    rng = random.Random(args.random_seed)
+    # hp_sampling_seed: prefer config value, fall back to CLI arg (default 2026)
+    hp_sampling_seed = int(config.get("hp_sampling_seed", args.random_seed))
+    rng = random.Random(hp_sampling_seed)
 
     all_trials = []
     best_configs = {}
@@ -39,6 +41,22 @@ def main():
             params = sample_params(config["search_spaces"][optimizer], rng)
             run_name = f"tune_{config['dataset']}_{optimizer}_trial{trial_idx:03d}_seed{tuning_seed}"
             run_dir = output_dir / run_name
+            if not args.dry_run and (run_dir / "summary.json").exists():
+                print(f"skip (already done): {run_name}")
+                if best_trial is None or metric_for_selection(read_summary(run_dir)) > best_trial["best_val_accuracy"]:
+                    existing = read_summary(run_dir)
+                    best_trial = {"trial": trial_idx, "best_val_accuracy": existing["best_val_accuracy"],
+                                  "final_test_accuracy": existing["final_test_accuracy"], **params}
+                trial_row = {"dataset": config["dataset"], "optimizer": optimizer, "budget": "small_tuned",
+                             "phase": "tuning", "trial": trial_idx, "seed": tuning_seed,
+                             "run_name": run_name, **params}
+                existing = read_summary(run_dir)
+                trial_row.update({"best_val_accuracy": existing["best_val_accuracy"],
+                                  "final_test_accuracy": existing["final_test_accuracy"],
+                                  "total_seconds": existing["total_seconds"],
+                                  "run_dir": existing["run_dir"]})
+                all_trials.append(trial_row)
+                continue
             cmd = train_command(config, optimizer, tuning_seed, params, run_name, output_dir)
             code = run_command(cmd, dry_run=args.dry_run)
             if code != 0:

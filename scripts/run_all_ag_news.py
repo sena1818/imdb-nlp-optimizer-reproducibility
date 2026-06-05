@@ -81,9 +81,12 @@ def main():
 
     if start_idx <= PHASES.index("plots"):
         print("=" * 60)
-        print("PHASE 4: Collect results and generate plots")
+        print("PHASE 4: Collect results, variance analysis, and plots")
         print("=" * 60)
         run([PYTHON, "scripts/collect_results.py", "--results-dir", str(results_dir)], args.dry_run)
+        run([PYTHON, "scripts/analyze_variance.py",
+             "--all-runs", str(results_dir / "all_runs.csv"),
+             "--output", str(results_dir / "variance_analysis.md")], args.dry_run)
         run([PYTHON, "scripts/make_plots.py", "--results-dir", str(results_dir)], args.dry_run)
 
     print("\nDone. Results in:", results_dir)

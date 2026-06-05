@@ -31,6 +31,13 @@ def main():
         for seed in config["seeds"]:
             run_name = f"rerun_small_tuned_{config['dataset']}_{optimizer}_seed{seed}"
             run_dir = output_dir / run_name
+            if not args.dry_run and (run_dir / "summary.json").exists():
+                print(f"skip (already done): {run_name}")
+                summary = read_summary(run_dir)
+                summary.update({"budget": "small_tuned", "phase": "rerun",
+                                 "optimizer": optimizer, "selected_trial": selected["trial"]})
+                summaries.append(summary)
+                continue
             cmd = train_command(config, optimizer, seed, params, run_name, output_dir)
             code = run_command(cmd, dry_run=args.dry_run)
             if code != 0:

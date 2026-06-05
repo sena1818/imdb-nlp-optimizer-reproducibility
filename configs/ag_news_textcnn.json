@@ -4,6 +4,7 @@
   "optimizers": ["sgd", "adam", "rmsprop", "adamw"],
   "seeds": [101, 102, 103, 104, 105],
   "tuning_seed": 101,
+  "hp_sampling_seed": 2026,
   "data_seed": 13,
   "epochs": 5,
   "batch_size": 64,
