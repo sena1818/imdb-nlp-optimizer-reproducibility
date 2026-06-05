@@ -1,157 +1,136 @@
 # Experiment Workflow
 
-This is the full workflow for the reproducibility study.
+Step-by-step guide for the full reproducibility study.
 
 ## 0. Environment
 
-Use the `sci_comp` conda environment:
-
 ```bash
-conda activate sci_comp
-python -m pip install datasets tqdm pandas matplotlib
+conda create -n imdb_nlp python=3.11 -y
+conda activate imdb_nlp
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+pip install datasets tqdm pandas matplotlib
 ```
 
-On Windows with the RTX 4060, also install a CUDA-enabled PyTorch build if the environment does not already have one. Check with:
-
+Verify CUDA:
 ```bash
 python -c "import torch; print(torch.__version__); print(torch.cuda.is_available())"
 ```
 
-## 1. Choose Dataset in Config
+---
 
-Edit `experiment_config.json`.
-
-Alternatively, use one of the ready-made configs:
-
-```text
-configs/ag_news_textcnn.json
-configs/imdb_textcnn.json
-```
-
-For AG News:
-
-```json
-"dataset": "ag_news",
-"max_len": 128
-```
-
-For IMDB:
-
-```json
-"dataset": "imdb",
-"max_len": 256
-```
-
-If runtime is too high, temporarily reduce:
-
-```json
-"epochs": 3,
-"tuning_trials_per_optimizer": 5,
-"seeds": [101, 102, 103]
-```
-
-## 2. Dry Run Commands
-
-Dry run prints commands without training:
+## Quick Start (one command)
 
 ```bash
-python scripts/run_default_baselines.py --config configs/ag_news_textcnn.json --dry-run
-python scripts/run_random_search.py --config configs/ag_news_textcnn.json --dry-run
+python scripts/run_all_imdb.py       # ~55 min on RTX 4060
+python scripts/run_all_ag_news.py    # ~130 min on RTX 4060
 ```
 
-## 3. Run Default Baselines
+Both scripts run all four phases and skip completed runs on restart.
+Use `--skip-to {baselines,random_search,reruns,plots}` to resume from any phase.
+Use `--dry-run` to print commands without executing.
+
+---
+
+## Step-by-Step
+
+### Phase 1 — Default Baselines (4 optimizers × 5 seeds = 20 runs)
 
 ```bash
-python scripts/run_default_baselines.py --config configs/ag_news_textcnn.json
+python scripts/run_default_baselines.py --config configs/imdb_textcnn.json
 ```
 
-This runs each optimizer with default hyperparameters across the configured seeds.
+Output: `results/imdb/default_summaries.{csv,json}`
 
-Outputs:
+### Phase 2 — Random Search (4 optimizers × 10 trials = 40 runs)
 
-```text
-results/ag_news/default_summaries.csv
-results/ag_news/default_summaries.json
-```
-
-## 4. Run Small-Budget Random Search
+Dropout is fixed at 0.5. Only lr, weight_decay, and momentum are searched.
+HP sampling is controlled by `hp_sampling_seed` (2026, recorded in config).
 
 ```bash
-python scripts/run_random_search.py --config configs/ag_news_textcnn.json
+python scripts/run_random_search.py --config configs/imdb_textcnn.json
 ```
 
-This uses one tuning seed and samples hyperparameters for each optimizer.
+Output: `results/imdb/random_search_trials.{csv,json}`, `best_configs_small_tuned.json`
 
-Outputs:
-
-```text
-results/ag_news/random_search_trials.csv
-results/ag_news/best_configs_small_tuned.json
-```
-
-## 5. Rerun Best Tuned Configurations Across Seeds
+### Phase 3 — Multi-Seed Reruns (4 optimizers × 5 seeds = 20 runs)
 
 ```bash
-python scripts/run_best_seed_reruns.py --config configs/ag_news_textcnn.json --best-configs results/ag_news/best_configs_small_tuned.json
+python scripts/run_best_seed_reruns.py \
+    --config configs/imdb_textcnn.json \
+    --best-configs results/imdb/best_configs_small_tuned.json
 ```
 
-This takes the selected best configuration per optimizer and reruns it across the configured seeds.
+Output: `results/imdb/small_tuned_rerun_summaries.{csv,json}`
 
-Outputs:
-
-```text
-results/ag_news/small_tuned_rerun_summaries.csv
-results/ag_news/small_tuned_rerun_summaries.json
-```
-
-## 6. Collect Results
+### Phase 4 — Analysis and Plots
 
 ```bash
-python scripts/collect_results.py --results-dir results/ag_news
+python scripts/collect_results.py  --results-dir results/imdb
+python scripts/analyze_variance.py --all-runs results/imdb/all_runs.csv \
+    --output results/imdb/variance_analysis.md
+python scripts/make_plots.py       --results-dir results/imdb
 ```
 
-Outputs:
-
-```text
-results/ag_news/all_runs.csv
-results/ag_news/optimizer_summary.csv
-results/ag_news/default_vs_tuned_pivot.csv
+Optional LMEM:
+```bash
+pip install statsmodels
+python scripts/analyze_variance.py --all-runs results/imdb/all_runs.csv \
+    --output results/imdb/variance_analysis.md --try-lmem
 ```
 
-## 7. Variance Analysis
+### Verify
 
 ```bash
-python scripts/analyze_variance.py --all-runs results/ag_news/all_runs.csv --output results/ag_news/variance_analysis.md
+python scripts/verify_results.py
 ```
 
-Optional LMEM attempt:
+---
+
+## For AG News
+
+Substitute `configs/imdb_textcnn.json` → `configs/ag_news_textcnn.json`
+and `results/imdb` → `results/ag_news`, or simply:
 
 ```bash
-python -m pip install statsmodels tabulate
-python scripts/analyze_variance.py --all-runs results/ag_news/all_runs.csv --output results/ag_news/variance_analysis.md --try-lmem
+python scripts/run_all_ag_news.py
 ```
 
-## 8. Make Plots
+---
 
-```bash
-python scripts/make_plots.py --results-dir results/ag_news
-```
+## Config Parameters
 
-Output:
+| Parameter | IMDB | AG News | Notes |
+|-----------|------|---------|-------|
+| `max_len` | 512 | 128 | 512 covers ~92% of IMDB reviews |
+| `epochs` | 5 | 5 | |
+| `batch_size` | 64 | 64 | |
+| `seeds` | [101..105] | [101..105] | Phase 1 and Phase 3 |
+| `tuning_seed` | 101 | 101 | Training seed used in Phase 2 |
+| `hp_sampling_seed` | 2026 | 2026 | Controls HP draws in Phase 2 |
+| `tuning_trials_per_optimizer` | 10 | 10 | |
 
-```text
-results/ag_news/plots/accuracy_by_optimizer_budget.png
-results/ag_news/plots/rank_changes.png
-```
+---
 
-## 9. Scientific Story
+## Metric Definitions
 
-The final analysis should answer:
+| Field | Meaning |
+|-------|---------|
+| `best_val_accuracy` | Best validation accuracy across all epochs |
+| `best_epoch_by_val_accuracy` | Epoch index where val was highest |
+| `best_epoch_test_accuracy` | **Primary metric**: test acc at the best-val epoch |
+| `final_test_accuracy` | Test acc at last epoch (kept for reference) |
 
-- Does the default optimizer ranking differ from the tuned ranking?
-- How large is seed variance for each optimizer?
-- Does tuning improvement exceed seed-level variation?
-- Does Adam/AdamW remain a strong baseline on this NLP task?
-- Are any conclusions conditional on tuning budget?
+`best_epoch_test_accuracy` is used because model selection is based on
+validation performance, so test accuracy should be evaluated at the same
+checkpoint. Reporting the final epoch would penalise optimisers whose
+models degrade slightly after their peak — most visible with SGD.
 
-This is intentionally a smaller version of the original paper's benchmark, not a full reproduction of all 15 optimizers and 8 tasks.
+---
+
+## Scientific Questions
+
+1. Does the default optimizer ranking differ from the tuned ranking?
+2. How large is seed variance for each optimizer and condition?
+3. Does the tuning gain exceed seed-level variation?
+4. Is the ranking dataset-dependent (IMDB vs AG News)?
+5. Are conclusions conditional on tuning budget?

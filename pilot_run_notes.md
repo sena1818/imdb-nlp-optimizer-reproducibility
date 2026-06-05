@@ -41,9 +41,12 @@ If IMDB is less than about 3x slower than AG News, it is still realistic for the
 
 ## Runtime Results
 
-Fill this table after running the pilots.
+Measured on RTX 4060, full training split, 5 epochs.
 
-| dataset | device | max train | max eval | max len | batch size | epochs | total time | sec/epoch | eval accuracy |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| AG News | | 8000 | 2000 | 128 | 64 | 1 | | | |
-| IMDB | | 8000 | 2000 | 256 | 64 | 1 | | | |
+| dataset | device | train size | max\_len | batch size | epochs | total time | sec/epoch | test accuracy |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| AG News | RTX 4060 (CUDA) | 108,000 | 128 | 64 | 5 | ~65 s | ~11 s | ~90.7% |
+| IMDB | RTX 4060 (CUDA) | 22,500 | 512 | 64 | 5 | ~40 s | ~4 s | ~87.7% |
+
+IMDB is fast enough to be the main dataset. Both datasets were used in the full study.
+max\_len was set to 512 for IMDB (covers 91.7% of reviews) and 128 for AG News (texts are short).
